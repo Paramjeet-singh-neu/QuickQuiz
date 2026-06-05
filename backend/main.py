@@ -41,6 +41,16 @@ app.include_router(auth_router)
 app.include_router(quiz_router)
 
 
+@app.get("/")
+def root():
+    return {
+        "service": "quickquiz-api",
+        "status": "ok",
+        "health": "/health",
+        "login": "/auth/login",
+    }
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "quickquiz-api"}
