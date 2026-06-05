@@ -1,0 +1,33 @@
+# Render Blueprint — deploy backend from GitHub
+# Dashboard: https://dashboard.render.com → New → Blueprint → connect QuickQuiz repo
+
+services:
+  - type: web
+    name: quickquiz-api
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: LUDWITT_BASE_URL
+        value: https://www.ludwitt.com
+      - key: LUDWITT_SCOPES
+        value: profile credits:read credits:spend data:read data:write
+      - key: LUDWITT_AI_MODEL
+        value: claude-haiku-4-5
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: LUDWITT_CLIENT_ID
+        sync: false
+      - key: LUDWITT_CLIENT_SECRET
+        sync: false
+      - key: LUDWITT_REDIRECT_URI
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false

@@ -1,165 +1,120 @@
-# QuickQuiz: Educational Content System
+# QuickQuiz: Ludwitt-Ready Educational Content System
 
-An intelligent system that converts PDF lectures into interactive quizzes with AI-powered analysis and statistical insights.
+QuickQuiz converts PDF lectures into interactive quizzes with AI-powered analysis, Ludwitt OAuth login, paid-credit AI billing, and hosted quiz history storage.
 
-## 🚀 Features
+## Features
 
-- **PDF Processing:** Extract and chunk text from lecture PDFs
-- **AI Analysis:** Generate key concepts and learning objectives using GPT-4
-- **Quiz Generation:** Create MCQ, True/False, and Cloze questions automatically
-- **Statistical Analysis:** Text complexity, readability scores, and mathematical content analysis
-- **Offline Mode:** Generate quizzes without LLM calls (zero cost)
-- **Cost Tracking:** Monitor LLM usage and estimated costs
+- PDF processing with vector retrieval and deterministic quiz generation
+- Ludwitt OAuth login and secure server-side token handling
+- AI analysis billed through Ludwitt credits (`/api/v1/ai/messages`)
+- Hosted-data persistence for quiz history (`quiz_runs` collection)
+- Offline mode with zero AI cost
+- Legacy CLI and Streamlit entry points for local development
 
-## 📋 Requirements
+## Architecture
 
-- Python 3.9+
-- OpenAI API key (for online mode)
-- 2GB+ RAM (for sentence transformers)
+- `backend/` — FastAPI API for OAuth, credits, quiz generation, hosted storage
+- `frontend/` — React/Vite marketplace-style web app
+- `ecs/` — existing multi-agent PDF/quiz pipeline
+- `main.py` — CLI
+- `streamlit_app.py` — legacy prototype UI
 
-## 🛠️ Installation
+## Ludwitt Registration
 
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd FinalProject_QuickQuiz
-   ```
+Register a hosted-data app at:
 
-2. **Create virtual environment:**
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
+`https://pitchrise.ludwitt.com/learning-engineers/apps/new`
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+Recommended settings:
 
-4. **Set up environment variables:**
-   ```bash
-   # Create .env file
-   echo "OPENAI_API_KEY=sk-your-key-here" > .env
-   echo "MODEL_NAME=gpt-4o-mini" >> .env
-   echo "ECONOMY_COST_PER_CALL=0.002" >> .env
-   
-   # Export to shell
-   export OPENAI_API_KEY=$(grep OPENAI_API_KEY .env | cut -d= -f2)
-   ```
+- Tier: **Hosted-data**
+- Scopes: `profile credits:read credits:spend data:read data:write`
+- Redirect URI (local): `http://localhost:8000/auth/callback`
+- Hosted-data collection: `quiz_runs`
+- Indexed fields: `createdAt`, `sourceName`
 
-## 🎯 Usage Examples
+Docs:
 
-### Online Mode (Full AI Analysis)
+- [Quickstart](https://pitchrise.ludwitt.com/docs/le/quickstart.md)
+- [OAuth](https://pitchrise.ludwitt.com/docs/le/oauth.md)
+- [Credits / AI](https://pitchrise.ludwitt.com/docs/le/credits.md)
+- [Hosted Data](https://pitchrise.ludwitt.com/docs/le/data-api.md)
+
+## Local Setup
+
+### 1. Backend
+
 ```bash
-python main.py --pdf "data/lecture.pdf" --n 10
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
 ```
-- Generates concepts, objectives, and structured quiz
-- Uses 1 LLM call (~$0.002 cost)
-- Best quality results
 
-### Offline Mode (Zero Cost)
+Fill in:
+
+- `LUDWITT_CLIENT_ID`
+- `LUDWITT_CLIENT_SECRET`
+- `SESSION_SECRET`
+
+Run API:
+
 ```bash
-python main.py --pdf "data/lecture.pdf" --n 10 --offline
+uvicorn backend.main:app --reload --port 8000
 ```
-- Generates quiz without LLM calls
-- Zero cost, fast processing
-- Basic concept extraction
 
-### Custom Question Count
+### 2. Frontend
+
 ```bash
-python main.py --pdf "data/lecture.pdf" --n 20
+cd frontend
+npm install
+npm run dev
 ```
-- Generate any number of questions
-- Mix of MCQ, True/False, and Cloze
 
-## ��️ Architecture
+Open `http://localhost:5173`.
 
-### Agents
-- **DocumentProcessor (0-LLM):** PDF text extraction and vector storage
-- **ContentAnalyzer (1-LLM):** AI-powered concept and objective analysis
-- **StatisticalAnalyzer (0-LLM):** Text complexity and readability metrics
-- **QuizGenerator (0-LLM):** Deterministic quiz generation
+### 3. Legacy CLI / Streamlit
 
-### Workflow
-1. PDF → Text chunks → Vector store
-2. Semantic retrieval → Content analysis
-3. Statistical analysis → Quiz generation
-4. Comprehensive reporting
+CLI:
 
-## 📊 Performance Metrics
+```bash
+python main.py --pdf path/to/lecture.pdf --n 10 --offline
+```
 
-- **LLM Calls:** 0-1 per request (≤2 requirement exceeded)
-- **Cost:** $0.0000 (offline) to $0.0020 (online)
-- **Processing Time:** <30 seconds for typical PDFs
-- **Accuracy:** High-quality AI analysis with fallback handling
+Streamlit:
 
-## �� Configuration
+```bash
+streamlit run streamlit_app.py
+```
 
-### Environment Variables
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `MODEL_NAME`: LLM model (default: gpt-4o-mini)
-- `ECONOMY_COST_PER_CALL`: Cost per LLM call (default: 0.002)
+Legacy online mode still uses `OPENAI_API_KEY`. The Ludwitt web app uses Ludwitt credits instead.
 
-### Customization
-- Chunk size and overlap in DocumentProcessor
-- Question types in QuizGenerator
-- Analysis depth in ContentAnalyzer
+## API Endpoints
 
-## 🧪 Testing
+- `GET /health`
+- `GET /auth/login`
+- `GET /auth/callback`
+- `GET /auth/me`
+- `POST /auth/logout`
+- `GET /api/credits/balance`
+- `GET /api/storage/usage`
+- `GET /api/quizzes/history`
+- `POST /api/quizzes/generate`
 
-### Test Scenarios
-1. **Basic PDF Processing:**
-   ```bash
-   python main.py --pdf "data/sample.pdf" --n 5
-   ```
+## Testing
 
-2. **Offline Mode:**
-   ```bash
-   python main.py --pdf "data/sample.pdf" --n 5 --offline
-   ```
+```bash
+pytest -q
+```
 
-3. **Large Document:**
-   ```bash
-   python main.py --pdf "data/large_lecture.pdf" --n 20
-   ```
+## Deployment Notes
 
-## 🚨 Troubleshooting
+- Set `COOKIE_SECURE=true` in production
+- Set `FRONTEND_URL` to your deployed frontend origin
+- Register the production OAuth callback on Ludwitt
+- Keep `client_secret` server-side only
 
-### Common Issues
-- **Import errors:** Ensure virtual environment is activated
-- **PDF reading errors:** Check PDF format and permissions
-- **LLM errors:** Verify OpenAI API key and internet connection
-- **Memory issues:** Reduce chunk size for large documents
+## Authors
 
-### Error Handling
-- Graceful fallbacks for LLM failures
-- Validation error handling for malformed responses
-- Comprehensive error reporting
-
-## 📈 Future Enhancements
-
-- Support for more document formats (DOCX, TXT)
-- Advanced question generation algorithms
-- Integration with learning management systems
-- Real-time collaboration features
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-
-
-## 👥 Authors
-
-Paramjeet Singh
+Paramjeet Singh  
 Northeastern University
-
-## �� Acknowledgments
-
-- OpenAI for GPT models
-- Hugging Face for sentence transformers
-- ChromaDB for vector storage

@@ -54,6 +54,9 @@ Thumbs.db
 *.log
 temp/
 tmp/
+node_modules/
+frontend/dist/
+frontend/node_modules/
 
 # Jupyter Notebook
 .ipynb_checkpoints

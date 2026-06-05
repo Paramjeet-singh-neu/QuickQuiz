@@ -1,22 +1,26 @@
 # ecs/agents/document_processor.py
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
+
 from PyPDF2 import PdfReader
-from sentence_transformers import SentenceTransformer
-import chromadb
-from chromadb.config import Settings
 from ecs.utils.text import clean_text, chunk_text
+
 
 class DocumentProcessor:
     """
     0-LLM agent: extracts text, chunks, embeds, and builds a vector store.
+    Heavy ML dependencies are imported lazily to keep API startup fast.
     """
+
     def __init__(self, persist_dir: str = ".chroma_store", collection_name: str = "lecture"):
+        from chromadb import PersistentClient
+        from chromadb.config import Settings
+        from sentence_transformers import SentenceTransformer
+
         self.persist_dir = persist_dir
         self.collection_name = collection_name
-        self.embedder = SentenceTransformer("all-MiniLM-L6-v2")  # fast, high-quality
-        self.client = chromadb.PersistentClient(path=self.persist_dir, settings=Settings(allow_reset=True))
-        # Create or get collection
+        self.embedder = SentenceTransformer("all-MiniLM-L6-v2")
+        self.client = PersistentClient(path=self.persist_dir, settings=Settings(allow_reset=True))
         self.collection = self.client.get_or_create_collection(self.collection_name)
 
     def _read_pdf(self, pdf_path: str) -> str:
