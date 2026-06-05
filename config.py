@@ -24,7 +24,7 @@ class AppConfig:
     )
 
     ludwitt_base_url: str = field(
-        default_factory=lambda: os.getenv("LUDWITT_BASE_URL", "https://www.ludwitt.com")
+        default_factory=lambda: os.getenv("LUDWITT_BASE_URL", "https://pitchrise.ludwitt.com")
     )
     cors_origins: str = field(
         default_factory=lambda: os.getenv("CORS_ORIGINS", "")

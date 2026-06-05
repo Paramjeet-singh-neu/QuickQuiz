@@ -49,6 +49,7 @@ ehthumbs.db
 Thumbs.db
 
 # Project Specific
+.ludwitt/
 .chroma_store/
 *.pdf
 *.log

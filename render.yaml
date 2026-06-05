@@ -14,7 +14,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.9"
       - key: LUDWITT_BASE_URL
-        value: https://www.ludwitt.com
+        value: https://pitchrise.ludwitt.com
       - key: LUDWITT_SCOPES
         value: profile credits:read credits:spend data:read data:write
       - key: LUDWITT_AI_MODEL
